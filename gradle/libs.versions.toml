@@ -10,6 +10,14 @@ material = "1.12.0"
 activity = "1.10.0"
 constraintlayout = "2.2.0"
 
+##hilt && dragger
+androidx-hilt = "1.1.0"
+google-dagger = "2.48"
+google-hilt = "2.48.1"
+
+# Room
+room="2.4.0"
+
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -19,9 +27,26 @@ androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+# AndroidX Hilt
+androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "androidx-hilt" }
+androidx-hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "androidx-hilt" }
+
+# Google Dagger
+google-dagger-hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "google-dagger" }
+google-dagger-hilt-android-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "google-dagger" }
+
+# Room Database
+androidx-room ={ group = "androidx.room",name = "room-compiler", version.ref = "room"}
+androidx-room-runtime = { group = "androidx.room",name = "room-runtime", version.ref = "room"}
+androidx-room-ktx = { group = "androidx.room",name = "room-ktx", version.ref = "room"}
+androidx-coroutines = { group = "org.jetbrains.kotlin", name = "room-coroutines", version="1.5.2"}
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
+google-hilt = { id = "com.google.dagger.hilt.android", version.ref = "google-hilt" }
 
+[bundles]
+android-kotlin-room = ["androidx-room", "androidx-room-ktx" ,"androidx-room-runtime" , "androidx-coroutines"]
+android-hilt-dragger = ["androidx-hilt-navigation-compose","androidx-hilt-work","google-dagger-hilt-android","google-dagger-hilt-android-compiler"]
