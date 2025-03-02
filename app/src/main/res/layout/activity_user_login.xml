@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".UserLoginActivity">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/loginCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="visible"
+        app:cardCornerRadius="10dp"
+        app:cardUseCompatPadding="true"
+        app:contentPadding="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/header"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="15dp"
+                android:text="Login"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/userIdTIL"
+                style="@style/MyDenseOutlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:hint="User ID"
+                android:textColorHint="@color/black"
+                app:boxStrokeColor="@color/outline"
+                app:boxStrokeWidth="5px"
+                app:hintTextAppearance="@color/cardview_dark_background"
+                app:layout_constraintHeight_percent="0.2"
+                app:layout_constraintTop_toBottomOf="@+id/header">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/userIdTIE"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/passwordTIL"
+                style="@style/MyDenseOutlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:hint="Password"
+                android:textColorHint="@color/black"
+                app:boxStrokeColor="@color/outline"
+                app:boxStrokeWidth="5px"
+                app:hintTextAppearance="@color/cardview_dark_background"
+                app:layout_constraintHeight_percent="0.2"
+                app:layout_constraintTop_toBottomOf="@+id/userIdTIL">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/passwordTIE"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Button
+                android:id="@+id/signup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Sign Up"
+                app:layout_constraintEnd_toStartOf="@+id/login"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/passwordTIL"
+                app:layout_constraintVertical_chainStyle="packed" />
+
+            <Button
+                android:id="@+id/login"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Login"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/signup"
+                app:layout_constraintTop_toBottomOf="@+id/passwordTIL" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/signupCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:cardCornerRadius="10dp"
+        app:cardUseCompatPadding="true"
+        app:contentPadding="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/signupHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="15dp"
+                android:text="Sign Up"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/nameTIL"
+                style="@style/MyDenseOutlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:hint="Name"
+                android:textColorHint="@color/black"
+                app:boxStrokeColor="@color/outline"
+                app:boxStrokeWidth="2dp"
+                app:hintTextAppearance="@color/cardview_dark_background"
+                app:layout_constraintHeight_percent="0.2"
+                app:layout_constraintTop_toBottomOf="@+id/signupHeader">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/nameTIE"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/emailTIL"
+                style="@style/MyDenseOutlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:hint="Email"
+                android:textColorHint="@color/black"
+                app:boxStrokeColor="@color/outline"
+                app:boxStrokeWidth="5px"
+                app:layout_constraintHeight_percent="0.2"
+                app:layout_constraintTop_toBottomOf="@+id/nameTIL">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/emailTIE"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/mobileNumberTIL"
+                style="@style/MyDenseOutlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:hint="Mobile Number"
+                android:textColorHint="@color/black"
+                app:boxStrokeColor="@color/outline"
+                app:boxStrokeWidth="5px"
+                app:hintTextAppearance="@color/cardview_dark_background"
+                app:layout_constraintHeight_percent="0.2"
+                app:layout_constraintTop_toBottomOf="@+id/emailTIL">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/mobileNumberTIE"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/passwordTILNewUser"
+                style="@style/MyDenseOutlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:hint="Password"
+                android:textColorHint="@color/black"
+                app:boxStrokeColor="@color/outline"
+                app:boxStrokeWidth="5px"
+                app:hintTextAppearance="@color/cardview_dark_background"
+                app:layout_constraintHeight_percent="0.2"
+                app:layout_constraintTop_toBottomOf="@+id/mobileNumberTIL">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/passwordTIENewUser"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/confirmPasswordTIL"
+                style="@style/MyDenseOutlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:hint="Confirm Password"
+                android:textColorHint="@color/black"
+                app:boxStrokeColor="@color/outline"
+                app:boxStrokeWidth="5px"
+                app:hintTextAppearance="@color/cardview_dark_background"
+                app:layout_constraintHeight_percent="0.2"
+                app:layout_constraintTop_toBottomOf="@+id/passwordTILNewUser">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/confirmPasswordTIE"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Button
+                android:id="@+id/newUserSignUp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Sign Up"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/confirmPasswordTIL"
+                app:layout_constraintVertical_chainStyle="packed" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.cardview.widget.CardView>
+</androidx.constraintlayout.widget.ConstraintLayout>

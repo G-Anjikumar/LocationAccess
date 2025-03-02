@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Location Access</string>
+    <string name="idle_time">00H:00M:00S</string>
+    <string name="idle_time_text">Idle Time :</string>
+    <string name="punch_in">Punch In</string>
+    <string name="punch_out">Punch Out</string>
+    <string name="camera">Camera</string>
+    <string name="active_time">Active Time :</string>
 </resources>

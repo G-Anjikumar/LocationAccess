@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     id("dagger.hilt.android.plugin")
+    id("kotlin-kapt")
 }
 
 android {
@@ -14,7 +15,6 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -48,8 +48,20 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation(project(":location_sdk"))
+    implementation(libs.android.maps)
+    implementation(libs.play.services.location)
     implementation(libs.bundles.android.hilt.dragger)
-    implementation(libs.bundles.android.kotlin.room)
+    implementation(libs.bundles.android.camera)
+    implementation("androidx.fragment:fragment-ktx:1.5.2")
+    implementation("com.google.guava:guava:31.0.1-android")
+    implementation(libs.bundles.android.kotlin.room){
+        exclude(group = "com.intellij", module = "annotations")
+    }
+    kapt(libs.androidx.room.compiler)
+    implementation ("com.google.code.gson:gson:2.11.0")
+    kapt(libs.google.dagger.hilt.android.compiler)
+    kapt ("androidx.hilt:hilt-compiler:1.0.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
