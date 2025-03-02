@@ -7,7 +7,6 @@ import android.location.Address
 import android.location.Geocoder
 import android.os.Bundle
 import android.text.InputType
-import android.util.Log
 import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
@@ -63,9 +62,8 @@ class UserScreenFragment : Fragment() {
     private var userDetails: UserDetails? = null
     private var userId by Delegates.notNull<Long>()
     private var isUserLoggedIn: Boolean = false
-    lateinit var addressString: String
-    lateinit var nameLocal: String
-    lateinit var mobileNumberLocal: String
+    private lateinit var nameLocal: String
+    private lateinit var mobileNumberLocal: String
     private var place = ""
     private var road = ""
     private var latlng = ""
@@ -91,7 +89,7 @@ class UserScreenFragment : Fragment() {
         }
         isUserLoggedIn = sharedPreferences.getBoolean("isUserLoggedIn", false)
         if (isUserLoggedIn) {
-            userScreenLayoutBinding.progressBar.visibility=View.VISIBLE
+            userScreenLayoutBinding.progressBar.visibility = View.VISIBLE
             userId = sharedPreferences.getLong("userId", 0L)
             fetchDetails(userId)
             nameLocal = sharedPreferences.getString(AppConstants.name, "")!!
@@ -140,10 +138,6 @@ class UserScreenFragment : Fragment() {
         }
     }
 
-    private fun updateGeoValues() {
-
-    }
-
     private fun fetchDetails(userId: Long) {
         scope.launch {
             withContext(Dispatchers.Main) {
@@ -165,31 +159,24 @@ class UserScreenFragment : Fragment() {
         locationJob = scope.launch {
             mapViewModel.locationFlow.collectLatest { locationData ->
                 locationData?.let { (isUserMoving, currentTime, location) ->
-                    Log.d("location_update", "Location:: $location")
-                    Log.d("location_update", "currentTime:: $currentTime")
-                    Log.d("location_update", "isUserMoving:: $isUserMoving")
-                    Log.d("location_update", "currentTime:: $currentTime")
-                    Log.d("location_update", "lastIdleTime:: $lastIdleTimeLocal")
-                    Log.d("location_update", "lastActiveTime:: $currentTime")
                     if (isUserMoving) {
                         // Accumulate active time
                         if (lastActiveTimeLocal == 0L) lastActiveTimeLocal = currentTime
                         totalActiveTimeLocal += currentTime - lastActiveTimeLocal
                         lastActiveTimeLocal = currentTime
                     } else {
-                        // Accumulate idle time
                         if (lastIdleTimeLocal == 0L) lastIdleTimeLocal = currentTime
                         totalIdleTimeLocal += currentTime - lastIdleTimeLocal
                         lastIdleTimeLocal = currentTime
                     }
                     val geocoder = Geocoder(requireContext(), Locale.getDefault())
-                    var addressWithLatLong: MutableList<Address>? =
+                    val addressWithLatLong: MutableList<Address>? =
                         geocoder.getFromLocation(location.latitude, location.longitude, 1)
                     elementList.clear()
                     if (addressWithLatLong != null) {
                         place =
-                            addressWithLatLong!![0].locality + ", " + addressWithLatLong!![0].adminArea + ", " + addressWithLatLong!![0].countryName
-                        road = addressWithLatLong!![0].getAddressLine(0)
+                            addressWithLatLong[0].locality + ", " + addressWithLatLong[0].adminArea + ", " + addressWithLatLong[0].countryName
+                        road = addressWithLatLong[0].getAddressLine(0)
                         elementList.add(place)
                         elementList.add(road)
                         latlng = "Lat Lng : ${location.latitude}, ${location.longitude}"
@@ -226,25 +213,13 @@ class UserScreenFragment : Fragment() {
                             timeStamp = currentTime
                         }
                     }
-                    Log.d("UdaptedValues", "UdaptedValues:: ${userDetails.toString()}")
                     userViewModel.udpateUserDetails(userDetails!!)
-                    Log.d("location_update", "lastIdleTimeAfter:: $lastIdleTimeLocal")
-                    Log.d("location_update", "lastActiveTimeAfter:: $lastActiveTimeLocal")
-                    Log.d("location_update", "totalIdleTime:: $totalIdleTimeLocal")
-                    Log.d("location_update", "totalActiveTime:: $totalActiveTimeLocal")
                     withContext(Dispatchers.Main) {
-                        userScreenLayoutBinding.progressBar.visibility=View.GONE
+                        userScreenLayoutBinding.progressBar.visibility = View.GONE
                         userScreenLayoutBinding.punchOut.visibility = View.VISIBLE
                         userScreenLayoutBinding.punchIn.visibility = View.GONE
                         userScreenLayoutBinding.cameraBtn.visibility = View.VISIBLE
                         sharedPreferences.edit().putBoolean("isUserLoggedIn", true).apply()
-                        Log.d("TimeBlinkIssue", "totalIdleTime:: ${formatTime(totalIdleTimeLocal)}")
-                        Log.d("TimeBlinkIssue", "totalIdleTime:: $totalIdleTimeLocal")
-                        Log.d(
-                            "TimeBlinkIssue",
-                            "totalActiveTime:: ${formatTime(totalActiveTimeLocal)}"
-                        )
-                        Log.d("TimeBlinkIssue", "totalActiveTime:: $totalActiveTimeLocal")
                         userScreenLayoutBinding.idleTimeValue.text = formatTime(totalIdleTimeLocal)
                         userScreenLayoutBinding.activeTimeValue.text =
                             formatTime(totalActiveTimeLocal)
@@ -268,7 +243,6 @@ class UserScreenFragment : Fragment() {
 
     private fun stopLocationTracking(context: Context) {
         WorkManager.getInstance(context).cancelUniqueWork("LocationTracking")
-        Log.d("WorkManager", "Location tracking stopped")
     }
 
     override fun onStop() {
@@ -339,7 +313,7 @@ class UserScreenFragment : Fragment() {
         alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
             val validateName = validateName(mobileNumberEditText)
             val validateMobile = validateMobile(mobileNumberEditText)
-            userScreenLayoutBinding.progressBar.visibility=View.VISIBLE
+            userScreenLayoutBinding.progressBar.visibility = View.VISIBLE
             if (validateMobile && validateName) {
                 lifecycleScope.launch {
                     withContext(Dispatchers.IO) {
@@ -357,7 +331,6 @@ class UserScreenFragment : Fragment() {
                                 userViewModel.createUser(userState)
                                 val state = userViewModel.createUserstate.filter { !it.isLoading }
                                     .first()
-                                Log.d("userStateDetails", "userState Mobile $state")
                                 if (userState.id != null) {
                                     userId = state.id!!
                                 }
@@ -383,7 +356,6 @@ class UserScreenFragment : Fragment() {
                             userViewModel.getUserDataWithMobileNumber(mobileNumberEditText.text.toString())
                             val state = userViewModel.userStateMobileNumber.filter { !it.isLoading }
                                 .first()
-                            Log.d("userStateDetails", "userState $state")
                             userId = state.userDetails?.id!!
                             userDetails = state.userDetails
                             sharedPreferences.edit().putLong(AppConstants.userId, userDetails?.id!!)
