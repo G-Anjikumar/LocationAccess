@@ -4,8 +4,10 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import com.anji.locationaccess.data.model.UserDetails
+import com.anji.locationaccess.data.model.UserDetailsWithImages
 
 @Dao
 interface UserDAO {
@@ -16,8 +18,9 @@ interface UserDAO {
     @Query("select mobileNumber from userdetails")
     suspend fun getMobileNumbers(): List<String>
 
+    @Transaction
     @Query("select * from userdetails where id=:userId")
-    suspend fun getUserData(userId: Long): UserDetails
+    suspend fun getUserData(userId: Long): UserDetailsWithImages
 
 
     @Query("select * from userdetails where mobileNumber=:mobileNumber")

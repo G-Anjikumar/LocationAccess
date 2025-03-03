@@ -1,29 +1,39 @@
 package com.anji.locationaccess.views
 
+import android.Manifest
 import android.app.AlertDialog
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.location.Address
 import android.location.Geocoder
 import android.os.Bundle
 import android.text.InputType
+import android.util.Log
 import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import com.anji.location_sdk.viewmodel.MapViewModel
 import com.anji.locationaccess.R
+import com.anji.locationaccess.adapter.HorizontalImageViewAdapter
+import com.anji.locationaccess.data.model.ImageDetails
 import com.anji.locationaccess.data.model.UserDetails
+import com.anji.locationaccess.data.model.UserDetailsWithImages
 import com.anji.locationaccess.data.viewmodel.UserDataViewModel
 import com.anji.locationaccess.databinding.UserScreenLayoutBinding
 import com.anji.locationaccess.service.LocationWorker
@@ -36,6 +46,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
@@ -58,18 +69,24 @@ class UserScreenFragment : Fragment() {
     private var locationJob: Job? = null
     private val gson = Gson()
     private var elementList: ArrayList<String> = ArrayList()
-    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var scope: CoroutineScope = createScope()
     private var userDetails: UserDetails? = null
+    private var userDataWithImages: UserDetailsWithImages? = null
     private var userId by Delegates.notNull<Long>()
     private var isUserLoggedIn: Boolean = false
     private lateinit var nameLocal: String
+    private var adapter: HorizontalImageViewAdapter?=null
     private lateinit var mobileNumberLocal: String
+    private var isScopeCreated: Boolean = false
     private var place = ""
     private var road = ""
     private var latlng = ""
 
     @Inject
     lateinit var sharedPreferences: SharedPreferences
+    private fun createScope(): CoroutineScope {
+        return CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    }
 
     private fun formatTime(millis: Long): String {
         val hours = millis / (1000 * 60 * 60)
@@ -87,6 +104,7 @@ class UserScreenFragment : Fragment() {
         userScreenLayoutBinding.punchIn.setOnClickListener {
             showAlertDialog()
         }
+        requestBackgroundLocationPermission()
         isUserLoggedIn = sharedPreferences.getBoolean("isUserLoggedIn", false)
         if (isUserLoggedIn) {
             userScreenLayoutBinding.progressBar.visibility = View.VISIBLE
@@ -98,20 +116,28 @@ class UserScreenFragment : Fragment() {
             userScreenLayoutBinding.punchIn.visibility = View.GONE
         } else {
             userScreenLayoutBinding.cameraBtn.visibility = View.GONE
+            userScreenLayoutBinding.recyclerViewCard.visibility = View.GONE
             userScreenLayoutBinding.punchOut.visibility = View.GONE
             userScreenLayoutBinding.punchIn.visibility = View.VISIBLE
         }
         userScreenLayoutBinding.punchOut.setOnClickListener {
+            userId = 0
+            sharedPreferences.edit().putBoolean("isUserLoggedIn", false).apply()
+            isScopeCreated = false
+            isUserLoggedIn = false
             userScreenLayoutBinding.punchOut.visibility = View.GONE
             userScreenLayoutBinding.punchIn.visibility = View.VISIBLE
             userScreenLayoutBinding.idleTimeValue.text = "00H:00M"
             userScreenLayoutBinding.activeTimeValue.text = "00H:00M"
-            userId = 0
+            locationJob!!.cancel()
+            scope.cancel()
+            stopLocationTracking(requireContext())
+            userScreenLayoutBinding.recyclerViewCard.visibility = View.GONE
             mobileNumberLocal = ""
             nameLocal = ""
-            sharedPreferences.edit().putBoolean("isUserLoggedIn", false).apply()
             updateIdleAndActiveTime()
             stopLocation()
+            adapter?.clear()
         }
         userScreenLayoutBinding.cameraBtn.setOnClickListener {
             fragmentTransition(CameraFragment())
@@ -144,85 +170,112 @@ class UserScreenFragment : Fragment() {
                 userViewModel.getUserDetails(userId)
                 val state = userViewModel.userState.filter { !it.isLoading }
                     .first()
-                userDetails = state.userDetails!!
-                lastIdleTimeLocal = userDetails?.lastIdleTime!!
-                lastActiveTimeLocal = userDetails?.lastActiveTime!!
-                totalIdleTimeLocal = userDetails?.idleTime!!
-                totalActiveTimeLocal = userDetails?.activeTime!!
+                userDataWithImages = state.userDataImageData!!
+                lastIdleTimeLocal = userDataWithImages!!.userDetails.lastIdleTime!!
+                lastActiveTimeLocal = userDataWithImages!!.userDetails.lastActiveTime!!
+                totalIdleTimeLocal = userDataWithImages!!.userDetails.idleTime!!
+                totalActiveTimeLocal = userDataWithImages!!.userDetails.activeTime!!
                 userDetails?.id?.let { sharedPreferences.edit().putLong("userId", it).apply() }
+                recylerViewInit(userDataWithImages!!.imageDetails as ArrayList)
                 getLocation()
             }
         }
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        parentFragmentManager.setFragmentResultListener("imageCaptured", this) { _, bundle ->
+            fetchDetails(userId)
+        }
+    }
+
+    fun recylerViewInit(imageDetails: ArrayList<ImageDetails>) {
+        adapter = HorizontalImageViewAdapter(requireContext(), imageDetails)
+        userScreenLayoutBinding.recyclerViewCard.visibility = View.VISIBLE
+        userScreenLayoutBinding.recylerView.layoutManager =
+            LinearLayoutManager(requireContext(), RecyclerView.HORIZONTAL, false)
+        userScreenLayoutBinding.recylerView.adapter = adapter
+    }
+
     private fun getLocation() {
+        if (!isScopeCreated) {
+            createScope()
+        }
+        sharedPreferences.edit().putBoolean("isUserLoggedIn", true).apply()
         locationJob = scope.launch {
             mapViewModel.locationFlow.collectLatest { locationData ->
                 locationData?.let { (isUserMoving, currentTime, location) ->
-                    if (isUserMoving) {
-                        // Accumulate active time
-                        if (lastActiveTimeLocal == 0L) lastActiveTimeLocal = currentTime
-                        totalActiveTimeLocal += currentTime - lastActiveTimeLocal
-                        lastActiveTimeLocal = currentTime
-                    } else {
-                        if (lastIdleTimeLocal == 0L) lastIdleTimeLocal = currentTime
-                        totalIdleTimeLocal += currentTime - lastIdleTimeLocal
-                        lastIdleTimeLocal = currentTime
-                    }
-                    val geocoder = Geocoder(requireContext(), Locale.getDefault())
-                    val addressWithLatLong: MutableList<Address>? =
-                        geocoder.getFromLocation(location.latitude, location.longitude, 1)
-                    elementList.clear()
-                    if (addressWithLatLong != null) {
-                        place =
-                            addressWithLatLong[0].locality + ", " + addressWithLatLong[0].adminArea + ", " + addressWithLatLong[0].countryName
-                        road = addressWithLatLong[0].getAddressLine(0)
-                        elementList.add(place)
-                        elementList.add(road)
-                        latlng = "Lat Lng : ${location.latitude}, ${location.longitude}"
-                        elementList.add(latlng)
-                    }
-                    val addressString: String = gson.toJson(elementList)
-                    if (userDetails == null) {
-                        userDetails = UserDetails(
-                            id = userId,
-                            name = nameLocal,
-                            mobileNumber = mobileNumberLocal,
-                            timeStamp = currentTime,
-                            lastActiveTime = lastActiveTimeLocal,
-                            lastIdleTime = lastIdleTimeLocal,
-                            idleTime = totalIdleTimeLocal,
-                            activeTime = totalActiveTimeLocal,
-                            address = addressString,
-                            lantitude = location.latitude.toString(),
-                            longitude = location.longitude.toString()
-                        )
-                    } else {
-                        userDetails?.apply {
-                            id = userId
-                            name = nameLocal
-                            mobileNumber = mobileNumberLocal
-                            timeStamp = System.currentTimeMillis()
-                            lastActiveTime = lastActiveTimeLocal
-                            lastIdleTime = lastIdleTimeLocal
-                            idleTime = totalIdleTimeLocal
-                            activeTime = totalActiveTimeLocal
-                            address = addressString
-                            lantitude = location.latitude.toString()
-                            longitude = location.longitude.toString()
-                            timeStamp = currentTime
+                    try {
+                        if (isUserMoving) {
+                            if (lastActiveTimeLocal == 0L) {
+                                lastActiveTimeLocal = currentTime
+                            }
+                            totalActiveTimeLocal += currentTime - lastActiveTimeLocal
+                            lastActiveTimeLocal = currentTime
+                        } else {
+                            if (lastIdleTimeLocal == 0L) {
+                                lastIdleTimeLocal = currentTime
+                            }
+                            totalIdleTimeLocal += currentTime - lastIdleTimeLocal
+                            lastIdleTimeLocal = currentTime
                         }
-                    }
-                    userViewModel.udpateUserDetails(userDetails!!)
-                    withContext(Dispatchers.Main) {
-                        userScreenLayoutBinding.progressBar.visibility = View.GONE
-                        userScreenLayoutBinding.punchOut.visibility = View.VISIBLE
-                        userScreenLayoutBinding.punchIn.visibility = View.GONE
-                        userScreenLayoutBinding.cameraBtn.visibility = View.VISIBLE
-                        sharedPreferences.edit().putBoolean("isUserLoggedIn", true).apply()
-                        userScreenLayoutBinding.idleTimeValue.text = formatTime(totalIdleTimeLocal)
-                        userScreenLayoutBinding.activeTimeValue.text =
-                            formatTime(totalActiveTimeLocal)
+                        val geocoder = Geocoder(requireContext(), Locale.getDefault())
+                        val addressWithLatLong: MutableList<Address>? =
+                            geocoder.getFromLocation(location.latitude, location.longitude, 1)
+                        elementList.clear()
+                        if (addressWithLatLong != null) {
+                            place =
+                                addressWithLatLong[0].locality + ", " + addressWithLatLong[0].adminArea + ", " + addressWithLatLong[0].countryName
+                            road = addressWithLatLong[0].getAddressLine(0)
+                            elementList.add(place)
+                            elementList.add(road)
+                            latlng = "Lat Lng : ${location.latitude}, ${location.longitude}"
+                            elementList.add(latlng)
+                        }
+                        val addressString: String = gson.toJson(elementList)
+                        if (userDetails == null) {
+                            userDetails = UserDetails(
+                                id = userId,
+                                name = nameLocal,
+                                mobileNumber = mobileNumberLocal,
+                                timeStamp = currentTime,
+                                lastActiveTime = lastActiveTimeLocal,
+                                lastIdleTime = lastIdleTimeLocal,
+                                idleTime = totalIdleTimeLocal,
+                                activeTime = totalActiveTimeLocal,
+                                address = addressString,
+                                lantitude = location.latitude.toString(),
+                                longitude = location.longitude.toString()
+                            )
+                        } else {
+                            userDetails?.apply {
+                                id = userId
+                                name = nameLocal
+                                mobileNumber = mobileNumberLocal
+                                timeStamp = System.currentTimeMillis()
+                                lastActiveTime = lastActiveTimeLocal
+                                lastIdleTime = lastIdleTimeLocal
+                                idleTime = totalIdleTimeLocal
+                                activeTime = totalActiveTimeLocal
+                                address = addressString
+                                lantitude = location.latitude.toString()
+                                longitude = location.longitude.toString()
+                                timeStamp = currentTime
+                            }
+                        }
+                        userViewModel.udpateUserDetails(userDetails!!)
+                        withContext(Dispatchers.Main) {
+                            userScreenLayoutBinding.progressBar.visibility = View.GONE
+                            userScreenLayoutBinding.punchOut.visibility = View.VISIBLE
+                            userScreenLayoutBinding.punchIn.visibility = View.GONE
+                            userScreenLayoutBinding.cameraBtn.visibility = View.VISIBLE
+                            userScreenLayoutBinding.idleTimeValue.text =
+                                formatTime(totalIdleTimeLocal)
+                            userScreenLayoutBinding.activeTimeValue.text =
+                                formatTime(totalActiveTimeLocal)
+                        }
+                    } catch (e: Exception) {
+                        e.message
                     }
                 }
             }
@@ -230,10 +283,16 @@ class UserScreenFragment : Fragment() {
     }
 
     private fun startLocationTracking(context: Context) {
-        val workRequest = OneTimeWorkRequestBuilder<LocationWorker>()
+        val data = Data.Builder()
+        data.putLong(AppConstants.userId, sharedPreferences.getLong(AppConstants.userId, 0L))
+        data.putString(AppConstants.name, sharedPreferences.getString(AppConstants.name, ""))
+        data.putString(
+            AppConstants.mobileNumber,
+            sharedPreferences.getString(AppConstants.mobileNumber, "")
+        )
+        val workRequest = OneTimeWorkRequestBuilder<LocationWorker>().setInputData(data.build())
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .build()
-
         WorkManager.getInstance(context).enqueueUniqueWork(
             "LocationTracking",
             ExistingWorkPolicy.REPLACE,
@@ -245,30 +304,41 @@ class UserScreenFragment : Fragment() {
         WorkManager.getInstance(context).cancelUniqueWork("LocationTracking")
     }
 
-    override fun onStop() {
-        super.onStop()
-        if (isUserLoggedIn) {
-            startLocationTracking(requireContext())
+    private fun requestBackgroundLocationPermission() {
+        if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            )
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissions(
+                arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+                1
+            )
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (isUserLoggedIn) {
-            stopLocationTracking(requireContext())
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            1 -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startLocationTracking(requireContext())
+                } else {
+                    Toast.makeText(
+                        requireContext(),
+                        "Background location permission denied",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        if (locationJob != null) {
-            locationJob!!.cancel()
-        }
-    }
-
-    private fun stopLocation() {
-        locationJob!!.cancel()
-    }
 
     private fun showAlertDialog() {
         val linearLayout = LinearLayout(requireActivity())
@@ -350,6 +420,7 @@ class UserScreenFragment : Fragment() {
                                 lastIdleTimeLocal = 0L
                                 totalIdleTimeLocal = 0L
                                 alertDialog.dismiss()
+                                sharedPreferences.edit().putBoolean("isUserLoggedIn", true).apply()
                                 getLocation()
                             }
                         } else {
@@ -406,5 +477,34 @@ class UserScreenFragment : Fragment() {
     ): Boolean {
         val name = mobileEdittext.text.toString().trim()
         return !(name.isEmpty() && mobileEdittext.text!!.length <= 10)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (isUserLoggedIn) {
+            stopLocationTracking(requireContext())
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (locationJob != null) {
+            locationJob!!.cancel()
+            scope.cancel()
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        isUserLoggedIn = sharedPreferences.getBoolean("isUserLoggedIn", false)
+        if (isUserLoggedIn) {
+            startLocationTracking(requireContext())
+        }else{
+            stopLocationTracking(requireContext())
+        }
+    }
+
+    private fun stopLocation() {
+        locationJob!!.cancel()
     }
 }

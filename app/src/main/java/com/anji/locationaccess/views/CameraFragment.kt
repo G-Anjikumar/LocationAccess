@@ -154,6 +154,10 @@ class CameraFragment : Fragment(), LocationTagOnImage.ImageListner {
                 val imageId: Long = imageViewModel.imageState.filter { !it.isLoading }.first().id!!
                 if (imageId != 0L) {
                     withContext(Dispatchers.Main) {
+                        val result = Bundle().apply {
+                            putString("imagePath", orginalPath)
+                        }
+                        parentFragmentManager.setFragmentResult("imageCaptured", result)
                         requireActivity().supportFragmentManager.popBackStackImmediate()
                     }
                 }

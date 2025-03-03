@@ -26,6 +26,15 @@ android {
                 "proguard-rules.pro"
             )
         }
+        debug {
+            isMinifyEnabled = false
+            isShrinkResources = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -53,6 +62,9 @@ dependencies {
     implementation(libs.play.services.location)
     implementation(libs.bundles.android.hilt.dragger)
     implementation(libs.bundles.android.camera)
+    implementation(libs.glide)
+    implementation("net.zetetic:android-database-sqlcipher:4.5.4")
+    implementation("androidx.sqlite:sqlite-ktx:2.3.1")
     implementation("androidx.fragment:fragment-ktx:1.5.2")
     implementation("com.google.guava:guava:31.0.1-android")
     implementation(libs.bundles.android.kotlin.room){

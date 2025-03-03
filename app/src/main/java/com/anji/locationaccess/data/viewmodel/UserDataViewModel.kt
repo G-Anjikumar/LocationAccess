@@ -45,7 +45,7 @@ class UserDataViewModel @Inject constructor(
             val response = withContext(Dispatchers.IO) {
                 userRepository.userCreate(userDetails)
             }
-            _createUserState.update {data ->
+            _createUserState.update { data ->
                 when (response) {
                     is Response.Loading -> data.copy(isLoading = true)
                     is Response.Success -> data.copy(
@@ -96,7 +96,7 @@ class UserDataViewModel @Inject constructor(
                     is Response.Loading -> it.copy(isLoading = true)
                     is Response.Success -> it.copy(
                         isLoading = false,
-                        userDetails = response.data
+                        userDataImageData = response.data
                     )
 
                     is Response.Error -> it.copy(
@@ -131,11 +131,23 @@ class UserDataViewModel @Inject constructor(
         }
     }
 
-    fun updateIdleAndActiveTime(idle:Long,active:Long,lastActiveTime:Long,lastIdleTime:Long,userId: Long) {
+    fun updateIdleAndActiveTime(
+        idle: Long,
+        active: Long,
+        lastActiveTime: Long,
+        lastIdleTime: Long,
+        userId: Long
+    ) {
         viewModelScope.launch {
             _idleAndActive.update { it.copy(isLoading = true) }
             val response = withContext(Dispatchers.IO) {
-                userRepository.updateIdleAndActive(idle,active,lastActiveTime,lastIdleTime,userId)
+                userRepository.updateIdleAndActive(
+                    idle,
+                    active,
+                    lastActiveTime,
+                    lastIdleTime,
+                    userId
+                )
                 _idleAndActive.update {
                     it.copy(isLoading = false)
                 }

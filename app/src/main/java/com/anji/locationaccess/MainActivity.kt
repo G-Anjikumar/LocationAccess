@@ -1,10 +1,12 @@
 package com.anji.locationaccess
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts

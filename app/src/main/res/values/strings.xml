@@ -6,4 +6,8 @@
     <string name="punch_out">Punch Out</string>
     <string name="camera">Camera</string>
     <string name="active_time">Active Time :</string>
+    <string name="secure_pass_room">AIzaSy</string>
+    <string name="mapKey">AIzaSyBlFtPvyv5Ff5PVFFpPWZi8r0fz0vrQeEs</string>
+    <!-- Key is Exposed but its only work to my project because in google cloud i restricted
+            with packname and sha1 key its not worked other package util i add the package in my console-->
 </resources>

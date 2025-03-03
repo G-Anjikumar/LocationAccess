@@ -8,11 +8,11 @@ import com.anji.locationaccess.util.Convertors
 @TypeConverters(Convertors::class)
 data class UserDetailsWithImages(
     @Embedded
-    private val userDetails:UserDetails,
+    val userDetails:UserDetails,
     @Relation(
         parentColumn = "id",
         entityColumn = "imageId"
     )
-    private val imageDetails: List<ImageDetails>
+    val imageDetails: List<ImageDetails>
 )
 

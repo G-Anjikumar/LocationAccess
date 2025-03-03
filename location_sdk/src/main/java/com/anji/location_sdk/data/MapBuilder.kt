@@ -38,7 +38,6 @@ class MapBuilder @Inject constructor(
             if (!context.hasLocationPermission()) {
                 throw LocationUpdateCallback.locationException("Need Location Permission")
             }
-
             val locationManager =
                 context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
             val isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
@@ -59,15 +58,12 @@ class MapBuilder @Inject constructor(
                 override fun onLocationResult(result: LocationResult) {
                     super.onLocationResult(result)
                     result.locations.lastOrNull()?.let { location ->
-                        Log.d("location_update", "In_Mapper:: ${location.longitude}")
                         val currentTime = System.currentTimeMillis()
-                        Log.d("location_update", "In_Mapper:: $currentTime")
                         if (lastLocation != null) {
-                            val timeDifference = (currentTime - lastUpdateTime) / 1000.0 // seconds
-                            val distance = lastLocation!!.distanceTo(location) // meters
-                            val speed = if (timeDifference > 0) distance / timeDifference else 0.0 // m/s
-                            // Adjust the speed threshold based on your use case
-                            isUserMoving = speed > 0.3 // 0.2 m/s (about 1.8 km/h, a slow walk)
+                            val timeDifference = (currentTime - lastUpdateTime) / 1000.0
+                            val distance = lastLocation!!.distanceTo(location)
+                            val speed = if (timeDifference > 0) distance / timeDifference else 0.0
+                            isUserMoving = speed > 0.3
                             lastUpdateTime = currentTime
                         }
                         lastLocation = location

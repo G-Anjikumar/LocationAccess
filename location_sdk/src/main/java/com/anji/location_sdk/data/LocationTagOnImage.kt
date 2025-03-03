@@ -13,7 +13,6 @@ import android.graphics.Typeface
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
-import android.media.ExifInterface
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Environment
@@ -21,11 +20,11 @@ import android.os.Handler
 import android.os.Looper
 import android.util.DisplayMetrics
 import android.util.Log
+import com.anji.location_sdk.R
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
 import java.net.URL
@@ -93,13 +92,13 @@ class LocationTagOnImage(context: Context) {
         this.context = context
     }
 
-    fun createImage(location: Location,_listner: ImageListner,bitmapTemp:Bitmap) {
+    fun createImage(location: Location, _listner: ImageListner, bitmapTemp: Bitmap) {
         val metrics: DisplayMetrics = context.resources.displayMetrics
-        listner=_listner
+        listner = _listner
         width = metrics.widthPixels
         height = metrics.heightPixels
         if (fileUri == null) {
-            Log.d("FileError","Unable to Find Location")
+            Log.d("FileError", "Unable to Find Location")
         }
         _location = location
         this.fileUri = fileUri
@@ -147,7 +146,7 @@ class LocationTagOnImage(context: Context) {
             geocoder = Geocoder(context, Locale.getDefault())
             try {
                 addresses = geocoder!!.getFromLocation(latitude, longitude, 1)
-                apiKey = "AIzaSyBlFtPvyv5Ff5PVFFpPWZi8r0fz0vrQeEs"
+                apiKey = context.resources.getString(R.string.mapAPIKey)
                 center = "$latitude,$longitude"
                 dimension = mapWidth.toString() + "x" + mapHeight
                 markerUrl = String.format(
@@ -174,6 +173,7 @@ class LocationTagOnImage(context: Context) {
             }
         }
     }
+
     private inner class LoadImageTask(private val imageUrl: String) : Runnable {
         override fun run() {
             try {
@@ -209,13 +209,9 @@ class LocationTagOnImage(context: Context) {
         }
     }
 
-    fun shutdown() {
-        executorService.shutdown()
-    }
-    
-
     private fun createBitmap(): Bitmap {
-        val b = Bitmap.createBitmap(tempBitmap!!.width, tempBitmap!!.height, Bitmap.Config.ARGB_8888)
+        val b =
+            Bitmap.createBitmap(tempBitmap!!.width, tempBitmap!!.height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(b)
         canvas.drawARGB(0, 255, 255, 255)
         canvas.drawRGB(255, 255, 255)
@@ -234,12 +230,14 @@ class LocationTagOnImage(context: Context) {
         matrix.preScale(if (horizontal) -1f else 1f, if (vertical) -1f else 1f)
         return Bitmap.createBitmap(source, 0, 0, source.width, source.height, matrix, true)
     }
+
     fun getScreenDimensions(context: Context): Pair<Int, Int> {
         val metrics = context.resources.displayMetrics
         val width = metrics.widthPixels
         val height = metrics.heightPixels
         return Pair(width, height)
     }
+
     private fun copyTheImage(canvas: Canvas) {
         try {
             bitmap = tempBitmap
@@ -247,37 +245,23 @@ class LocationTagOnImage(context: Context) {
         } catch (e: IOException) {
             e.printStackTrace()
         }
-        val pair :Pair<Int,Int> =getScreenDimensions(context)
         val design = Paint()
         val bitmapWidth = bitmap!!.width
         val bitmapHeight = bitmap!!.height
 
-// Calculate the aspect ratio
-        val aspectRatio = bitmapWidth.toFloat() / bitmapHeight.toFloat()
 
-// Get target width and height for the canvas or screen
         val targetWidth = canvas.width
         val targetHeight = canvas.height
-
-// Calculate scale that maintains the aspect ratio
         val scale = targetWidth.toFloat() / bitmapWidth
 
-// Calculate new dimensions based on the scaling factor
         val scaledHeight = (bitmapHeight * scale).toInt()
-
-// Create a scaled bitmap with the new width and height
         val scaledBitmap = Bitmap.createScaledBitmap(bitmap!!, targetWidth, scaledHeight, true)
-
-// Draw the scaled bitmap on the canvas, centered if needed
         val yOffset = if (scaledHeight > targetHeight) {
             (scaledHeight - targetHeight) / 2f
         } else {
             0f
         }
-//        yOffset+200
         canvas.drawBitmap(scaledBitmap, 0f, -yOffset, design)
-//        val scaledbmp = Bitmap.createScaledBitmap(bitmap!!, bitmapWidth, bitmapHeight, false)
-//        canvas.drawBitmap(scaledbmp, 0f, 0f, design)
         val rectPaint = Paint()
         rectPaint.color = backgroundColor
         rectPaint.style = Paint.Style.FILL
@@ -473,6 +457,7 @@ class LocationTagOnImage(context: Context) {
     fun showAuthorName(showAuthorName: Boolean) {
         this.showAuthorName = showAuthorName
     }
+
     fun setAuthorName(authorName: String?) {
         this.authorName = authorName
     }
@@ -515,9 +500,9 @@ class LocationTagOnImage(context: Context) {
         const val JPEG = ".jpeg"
     }
 
-    interface ImageListner{
-        fun getImagePath(path:String)
+    interface ImageListner {
+        fun getImagePath(path: String)
 
-        fun getBitMap(bitMap:Bitmap)
+        fun getBitMap(bitMap: Bitmap)
     }
 }
