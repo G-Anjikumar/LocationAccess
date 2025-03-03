@@ -214,7 +214,11 @@ class CameraFragment : Fragment(), LocationTagOnImage.ImageListner {
         return withContext(Dispatchers.IO) {
             val resolver: ContentResolver = requireContext().contentResolver
             val imageCollection =
-                MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                } else {
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                }
             val appName = requireContext().getString(R.string.app_name)
             val milliSec: Long = System.currentTimeMillis()
             val imageName = "${milliSec}_image.jpg"

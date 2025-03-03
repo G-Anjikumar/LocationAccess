@@ -9,7 +9,6 @@ import android.location.Address
 import android.location.Geocoder
 import android.os.Bundle
 import android.text.InputType
-import android.util.Log
 import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
@@ -75,7 +74,7 @@ class UserScreenFragment : Fragment() {
     private var userId by Delegates.notNull<Long>()
     private var isUserLoggedIn: Boolean = false
     private lateinit var nameLocal: String
-    private var adapter: HorizontalImageViewAdapter?=null
+    private var adapter: HorizontalImageViewAdapter? = null
     private lateinit var mobileNumberLocal: String
     private var isScopeCreated: Boolean = false
     private var place = ""
@@ -105,7 +104,7 @@ class UserScreenFragment : Fragment() {
             showAlertDialog()
         }
         requestBackgroundLocationPermission()
-        isUserLoggedIn = sharedPreferences.getBoolean("isUserLoggedIn", false)
+        isUserLoggedIn = sharedPreferences.getBoolean(AppConstants.isUserLoggedIn, false)
         if (isUserLoggedIn) {
             userScreenLayoutBinding.progressBar.visibility = View.VISIBLE
             userId = sharedPreferences.getLong("userId", 0L)
@@ -122,13 +121,13 @@ class UserScreenFragment : Fragment() {
         }
         userScreenLayoutBinding.punchOut.setOnClickListener {
             userId = 0
-            sharedPreferences.edit().putBoolean("isUserLoggedIn", false).apply()
+            sharedPreferences.edit().putBoolean(AppConstants.isUserLoggedIn, false).apply()
             isScopeCreated = false
             isUserLoggedIn = false
             userScreenLayoutBinding.punchOut.visibility = View.GONE
             userScreenLayoutBinding.punchIn.visibility = View.VISIBLE
-            userScreenLayoutBinding.idleTimeValue.text = "00H:00M"
-            userScreenLayoutBinding.activeTimeValue.text = "00H:00M"
+            userScreenLayoutBinding.idleTimeValue.text = getString(R.string.idle_time)
+            userScreenLayoutBinding.activeTimeValue.text = getString(R.string.idle_time)
             locationJob!!.cancel()
             scope.cancel()
             stopLocationTracking(requireContext())
@@ -175,7 +174,9 @@ class UserScreenFragment : Fragment() {
                 lastActiveTimeLocal = userDataWithImages!!.userDetails.lastActiveTime!!
                 totalIdleTimeLocal = userDataWithImages!!.userDetails.idleTime!!
                 totalActiveTimeLocal = userDataWithImages!!.userDetails.activeTime!!
-                userDetails?.id?.let { sharedPreferences.edit().putLong("userId", it).apply() }
+                userDetails?.id?.let {
+                    sharedPreferences.edit().putLong(AppConstants.userId, it).apply()
+                }
                 recylerViewInit(userDataWithImages!!.imageDetails as ArrayList)
                 getLocation()
             }
@@ -201,7 +202,7 @@ class UserScreenFragment : Fragment() {
         if (!isScopeCreated) {
             createScope()
         }
-        sharedPreferences.edit().putBoolean("isUserLoggedIn", true).apply()
+        sharedPreferences.edit().putBoolean(AppConstants.isUserLoggedIn, true).apply()
         locationJob = scope.launch {
             mapViewModel.locationFlow.collectLatest { locationData ->
                 locationData?.let { (isUserMoving, currentTime, location) ->
@@ -331,7 +332,7 @@ class UserScreenFragment : Fragment() {
                 } else {
                     Toast.makeText(
                         requireContext(),
-                        "Background location permission denied",
+                        getString(R.string.background_location_permission_denied),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -349,7 +350,7 @@ class UserScreenFragment : Fragment() {
             inputType = InputType.TYPE_TEXT_VARIATION_PERSON_NAME
         }
         widthInputLayout.apply {
-            hint = " Name "
+            hint = context.getString(R.string.name)
             addView(nameEditText)
         }
 
@@ -359,7 +360,7 @@ class UserScreenFragment : Fragment() {
             inputType = InputType.TYPE_CLASS_PHONE
         }
         heightInputLayout.apply {
-            hint = "Mobile Number"
+            hint = context.getString(R.string.mobile_number)
             addView(mobileNumberEditText)
         }
         linearLayout.apply {
@@ -371,9 +372,9 @@ class UserScreenFragment : Fragment() {
         val alertDialog = androidx.appcompat.app.AlertDialog.Builder(requireContext())
             .setView(linearLayout)
             .setCancelable(false)
-            .setTitle("User Details")
-            .setNegativeButton("Cancel", null)
-            .setPositiveButton("OK", null)
+            .setTitle(getString(R.string.user_details))
+            .setNegativeButton(getString(R.string.cancel), null)
+            .setPositiveButton(getString(R.string.ok), null)
             .create()
         alertDialog.show()
         alertDialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEGATIVE)
@@ -420,7 +421,8 @@ class UserScreenFragment : Fragment() {
                                 lastIdleTimeLocal = 0L
                                 totalIdleTimeLocal = 0L
                                 alertDialog.dismiss()
-                                sharedPreferences.edit().putBoolean("isUserLoggedIn", true).apply()
+                                sharedPreferences.edit()
+                                    .putBoolean(AppConstants.isUserLoggedIn, true).apply()
                                 getLocation()
                             }
                         } else {
@@ -496,10 +498,10 @@ class UserScreenFragment : Fragment() {
 
     override fun onStop() {
         super.onStop()
-        isUserLoggedIn = sharedPreferences.getBoolean("isUserLoggedIn", false)
+        isUserLoggedIn = sharedPreferences.getBoolean(AppConstants.isUserLoggedIn, false)
         if (isUserLoggedIn) {
             startLocationTracking(requireContext())
-        }else{
+        } else {
             stopLocationTracking(requireContext())
         }
     }
