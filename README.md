@@ -6,10 +6,10 @@ An android app built using Kotlin With advanced Jetpack components that consumes
 ## Screens
 
 <p align="center">
-  <img src="https://github.com/G-Anjikumar/MovieApp/blob/638d5ada3a0fb6cf0ae1829b0ecb46bf241fe709/splashScreen.png" alt="splash screen" width="200"/>
-  <img src="https://github.com/G-Anjikumar/MovieApp/blob/0bf2ed113a09852a3264ce8d4bacbfccfc4da10c/shows.png" alt="shows screen" width="200"/>
-  <img src="https://github.com/G-Anjikumar/MovieApp/blob/0bf2ed113a09852a3264ce8d4bacbfccfc4da10c/showdetails.png" alt="show details" width="200"/>
-  <img src="https://github.com/G-Anjikumar/MovieApp/blob/0bf2ed113a09852a3264ce8d4bacbfccfc4da10c/actors.png" alt="actors screen" width="200"/>
+  <img src="https://github.com/G-Anjikumar/LocationAccess/blob/82917a27dc292a920708879a5f9a7d548b8ffa02/screens/camera.png" alt="splash screen" width="200"/>
+  <img src="https://github.com/G-Anjikumar/LocationAccess/blob/82917a27dc292a920708879a5f9a7d548b8ffa02/screens/user_screen.png" alt="shows screen" width="200"/>
+  <img src="https://github.com/G-Anjikumar/LocationAccess/blob/82917a27dc292a920708879a5f9a7d548b8ffa02/screens/permission.png" alt="show details" width="200"/>
+  <img src="https://github.com/G-Anjikumar/LocationAccess/blob/82917a27dc292a920708879a5f9a7d548b8ffa02/screens/user_screen.png" alt="actors screen" width="200"/>
 </p>
 
 ## Features
