@@ -61,6 +61,13 @@ class MainActivity : AppCompatActivity() {
             )
         }
     }
+    override fun onBackPressed() {
+        if (supportFragmentManager.backStackEntryCount > 1) {
+            supportFragmentManager.popBackStack()
+        } else {
+            finish()
+        }
+    }
 
     private val locationPermissionRequest = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
