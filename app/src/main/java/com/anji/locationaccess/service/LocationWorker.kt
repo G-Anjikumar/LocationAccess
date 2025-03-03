@@ -68,6 +68,10 @@ class LocationWorker(
         val nameLocal = inputData.getString(AppConstants.name)
         val mobileNumber = inputData.getString(AppConstants.mobileNumber)
         val userId = inputData.getLong(AppConstants.userId, 0L)
+        lastActiveTimeLocal=inputData.getLong(AppConstants.lastActiveTimeLocal,0L)
+        lastIdleTimeLocal=inputData.getLong(AppConstants.lastIdleTimeLocal,0L)
+        totalActiveTimeLocal=inputData.getLong(AppConstants.totalActiveTimeLocalr,0L)
+        totalIdleTimeLocal=inputData.getLong(AppConstants.totalIdleTimeLocal,0L)
         startForeground(1, notification)
         var lastLocation: Location? = null
         var lastUpdateTime: Long = 0L

@@ -169,7 +169,7 @@ class UserScreenFragment : Fragment() {
                 userViewModel.getUserDetails(userId)
                 val state = userViewModel.userState.filter { !it.isLoading }
                     .first()
-                userDataWithImages = state.userDataImageData!!
+                userDataWithImages = state.userDataImageData ?: throw IllegalStateException("User data is null")
                 lastIdleTimeLocal = userDataWithImages!!.userDetails.lastIdleTime!!
                 lastActiveTimeLocal = userDataWithImages!!.userDetails.lastActiveTime!!
                 totalIdleTimeLocal = userDataWithImages!!.userDetails.idleTime!!
@@ -200,7 +200,7 @@ class UserScreenFragment : Fragment() {
 
     private fun getLocation() {
         if (!isScopeCreated) {
-            createScope()
+            scope = createScope()
         }
         sharedPreferences.edit().putBoolean(AppConstants.isUserLoggedIn, true).apply()
         locationJob = scope.launch {
@@ -291,6 +291,10 @@ class UserScreenFragment : Fragment() {
             AppConstants.mobileNumber,
             sharedPreferences.getString(AppConstants.mobileNumber, "")
         )
+        data.putLong(AppConstants.lastIdleTimeLocal, lastIdleTimeLocal)
+        data.putLong(AppConstants.lastActiveTimeLocal, lastActiveTimeLocal)
+        data.putLong(AppConstants.totalIdleTimeLocal, totalIdleTimeLocal)
+        data.putLong(AppConstants.totalActiveTimeLocalr, totalActiveTimeLocal)
         val workRequest = OneTimeWorkRequestBuilder<LocationWorker>().setInputData(data.build())
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .build()
@@ -429,23 +433,27 @@ class UserScreenFragment : Fragment() {
                             userViewModel.getUserDataWithMobileNumber(mobileNumberEditText.text.toString())
                             val state = userViewModel.userStateMobileNumber.filter { !it.isLoading }
                                 .first()
-                            userId = state.userDetails?.id!!
-                            userDetails = state.userDetails
-                            sharedPreferences.edit().putLong(AppConstants.userId, userDetails?.id!!)
-                                .apply()
-                            sharedPreferences.edit().putString(AppConstants.name, userDetails?.name)
-                                .apply()
-                            sharedPreferences.edit()
-                                .putString(AppConstants.mobileNumber, userDetails?.mobileNumber)
-                                .apply()
-                            alertDialog.dismiss()
-                            nameLocal = nameEditText.text.toString()
-                            mobileNumberLocal = mobileNumberEditText.text.toString()
-                            lastActiveTimeLocal = userDetails?.lastActiveTime!!
-                            lastIdleTimeLocal = userDetails?.lastIdleTime!!
-                            totalIdleTimeLocal = userDetails?.idleTime!!
-                            totalActiveTimeLocal = userDetails?.activeTime!!
-                            getLocation()
+                            if (state.userDetails?.id != null) {
+                                userId = state.userDetails.id
+                                userDetails = state.userDetails
+                                sharedPreferences.edit()
+                                    .putLong(AppConstants.userId, userDetails?.id!!)
+                                    .apply()
+                                sharedPreferences.edit()
+                                    .putString(AppConstants.name, userDetails?.name)
+                                    .apply()
+                                sharedPreferences.edit()
+                                    .putString(AppConstants.mobileNumber, userDetails?.mobileNumber)
+                                    .apply()
+                                alertDialog.dismiss()
+                                nameLocal = nameEditText.text.toString()
+                                mobileNumberLocal = mobileNumberEditText.text.toString()
+                                lastActiveTimeLocal = userDetails?.lastActiveTime!!
+                                lastIdleTimeLocal = userDetails?.lastIdleTime!!
+                                totalIdleTimeLocal = userDetails?.idleTime!!
+                                totalActiveTimeLocal = userDetails?.activeTime!!
+                                getLocation()
+                            }
                         }
                     }
                 }
