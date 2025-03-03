@@ -213,12 +213,14 @@ class UserScreenFragment : Fragment() {
                             }
                             totalActiveTimeLocal += currentTime - lastActiveTimeLocal
                             lastActiveTimeLocal = currentTime
+                            lastIdleTimeLocal = 0L
                         } else {
                             if (lastIdleTimeLocal == 0L) {
                                 lastIdleTimeLocal = currentTime
                             }
                             totalIdleTimeLocal += currentTime - lastIdleTimeLocal
                             lastIdleTimeLocal = currentTime
+                            lastActiveTimeLocal = 0L
                         }
                         val geocoder = Geocoder(requireContext(), Locale.getDefault())
                         val addressWithLatLong: MutableList<Address>? =

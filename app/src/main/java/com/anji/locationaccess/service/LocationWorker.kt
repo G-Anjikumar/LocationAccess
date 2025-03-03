@@ -99,12 +99,14 @@ class LocationWorker(
                         }
                         totalActiveTimeLocal += currentTime - lastActiveTimeLocal
                         lastActiveTimeLocal = currentTime
+                        lastIdleTimeLocal = 0L
                     } else {
                         if (lastIdleTimeLocal == 0L) {
                             lastIdleTimeLocal = currentTime
                         }
                         totalIdleTimeLocal += currentTime - lastIdleTimeLocal
                         lastIdleTimeLocal = currentTime
+                        lastActiveTimeLocal = 0L
                     }
                     updateNotification(notificationManager, location)
                     lastLocation = location
