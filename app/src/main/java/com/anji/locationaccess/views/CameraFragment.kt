@@ -5,6 +5,7 @@ import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.location.Location
@@ -279,10 +280,29 @@ class CameraFragment : Fragment(), LocationTagOnImage.ImageListner {
                 cameraLayoutBinding.progressBar.visibility = View.GONE
                 cameraLayoutBinding.cameraLayout.visibility = View.GONE
                 cameraLayoutBinding.imageViewParent.visibility = View.VISIBLE
-                cameraLayoutBinding.cameraImage.setImageBitmap(bitMap)
+                val displayMetrics = Resources.getSystem().displayMetrics
+                val fullScreenBitmap = scaleAndCenterCrop(bitMap, displayMetrics.widthPixels, displayMetrics.heightPixels)
+                cameraLayoutBinding.cameraImage.setImageBitmap(fullScreenBitmap)
                 overlayBitmap = bitMap
                 orginalPath = saveImage(bitMap)!!
             }
         }
+    }
+
+    private fun scaleAndCenterCrop(bitmap: Bitmap, targetWidth: Int, targetHeight: Int): Bitmap {
+        val scale: Float = maxOf(
+            targetWidth.toFloat() / bitmap.width,
+            targetHeight.toFloat() / bitmap.height
+        )
+
+        val scaledWidth = (scale * bitmap.width).toInt()
+        val scaledHeight = (scale * bitmap.height).toInt()
+
+        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, scaledWidth, scaledHeight, true)
+
+        val xOffset = (scaledWidth - targetWidth) / 2
+        val yOffset = (scaledHeight - targetHeight) / 2
+
+        return Bitmap.createBitmap(scaledBitmap, xOffset, yOffset, targetWidth, targetHeight)
     }
 }
