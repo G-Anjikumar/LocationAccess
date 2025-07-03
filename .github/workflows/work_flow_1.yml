@@ -16,6 +16,7 @@ jobs:
         run: ./gradlew lint
         continue-on-error: false
   test:
+    needs: [android-lint]
     runs-on: ubuntu-latest
     steps: 
       - name: set JDK 17
@@ -29,6 +30,7 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
   deploy:
+    needs: [test]
     runs-on: ubuntu-latest
     steps:
       - name: Get Code
