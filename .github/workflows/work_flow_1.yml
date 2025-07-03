@@ -43,3 +43,5 @@ jobs:
         run: chmod +x gradlew
       - name: Build with Gradle
         run: ./gradlew build
+      - name: Deploy Code
+        run: echo "{{ toJSON(github) }}"
